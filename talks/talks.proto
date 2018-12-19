@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package talks;
+
+service Talking {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Select(SelectRequest) returns (SelectResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+}
+
+message Talk {
+	string id = 1;
+	string title = 2;
+	string description = 3;
+	string repository = 4;
+  int64 date = 5;
+	string tags = 6;
+	string user_user_id = 7;
+
+
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message GetRequest {
+  string talk_id = 1;
+}
+
+message GetResponse {
+  Talk talk = 1;
+}
+
+message SelectRequest {}
+
+message SelectResponse {
+  repeated Talk talk = 1;
+}
+
+message CreateRequest {
+  Talk talk = 1;
+}
+
+message CreateResponse {
+  Talk talk = 1;
+}
+
+message UpdateRequest {}
+
+message UpdateResponse {
+  Talk talk = 1;
+}
+
+message DeleteRequest {}
+
+message DeleteResponse {
+  Talk talk = 1;
+}
