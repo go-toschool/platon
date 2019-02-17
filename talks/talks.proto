@@ -17,7 +17,7 @@ message Talk {
 	string repository = 4;
   int64 date = 5;
 	string tags = 6;
-	string user_user_id = 7;
+	string user_id = 7;
 
 
   int64 created_at = 8;
@@ -26,6 +26,7 @@ message Talk {
 
 message GetRequest {
   string talk_id = 1;
+  string user_id = 2;
 }
 
 message GetResponse {
@@ -46,14 +47,18 @@ message CreateResponse {
   Talk talk = 1;
 }
 
-message UpdateRequest {}
-
-message UpdateResponse {
-  Talk talk = 1;
+message UpdateRequest {
+  Talk data = 1;
 }
 
-message DeleteRequest {}
+message UpdateResponse {
+  Talk data = 1;
+}
+
+message DeleteRequest {
+  Talk data = 1;
+}
 
 message DeleteResponse {
-  Talk talk = 1;
+  Talk data = 1;
 }
