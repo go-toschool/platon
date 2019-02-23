@@ -21,22 +21,30 @@ type Talk struct {
 	DeletedAt *time.Time `json:"-" db:"deleted_at"`
 }
 
-// TalksQuery ...
+// TalksQuery represents values to query database.
 type TalksQuery struct {
 	ID     string
 	UserID string
 }
 
-// Talks interface
+// Talks represents basic behavior for plato service.
 type Talks interface {
-	Get(*TalksQuery) (*Talk, error)
+	TalksGetter
+
 	Select() ([]*Talk, error)
 	Create(*Talk) error
 	Update(*Talk) error
 	Delete(*Talk) error
 }
 
-// ToProto ...
+// TalksGetter represents getter actions.
+type TalksGetter interface {
+	GetByID(id string) (*Talk, error)
+	GetByUserID(userID string) (*Talk, error)
+	GetByIDAndUserID(id, userID string) (*Talk, error)
+}
+
+// ToProto helper function to transform to proto message.
 func (t *Talk) ToProto() *talks.Talk {
 	return &talks.Talk{
 		Id:          t.ID,
@@ -51,7 +59,7 @@ func (t *Talk) ToProto() *talks.Talk {
 	}
 }
 
-// FromProto ...
+// FromProto helper function to transform to plato struct.
 func (t *Talk) FromProto(tt *talks.Talk) *Talk {
 	t.ID = tt.Id
 	t.Title = tt.Title

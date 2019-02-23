@@ -7,9 +7,9 @@ import (
 	"log"
 	"net"
 
+	"github.com/go-toschool/platon/database"
 	"github.com/go-toschool/platon/entities"
-	"github.com/go-toschool/platon/postgres"
-	"github.com/jmoiron/sqlx"
+	"github.com/go-toschool/platon/service"
 
 	"github.com/go-toschool/platon/talks"
 	"google.golang.org/grpc"
@@ -23,15 +23,13 @@ func main() {
 
 	flag.Parse()
 
-	db, err := sqlx.Connect("postgres", *postgresDSN)
+	pgSvc, err := database.NewPostgres(*postgresDSN)
 	if err != nil {
 		log.Fatalf("Failed to connect to postgres: %v", err)
 	}
 
 	ts := &TalksService{
-		Talks: &postgres.TalksService{
-			Store: db,
-		},
+		Talks: service.NewTalksService(pgSvc),
 	}
 	srv := grpc.NewServer()
 	talks.RegisterTalkingServer(srv, ts)
@@ -58,10 +56,7 @@ func (ts *TalksService) String() string {
 
 // Get ...
 func (ts *TalksService) Get(ctx context.Context, gr *talks.GetRequest) (*talks.GetResponse, error) {
-	t, err := ts.Talks.Get(&entities.TalksQuery{
-		ID:     gr.GetTalkId(),
-		UserID: gr.GetUserId(),
-	})
+	t, err := ts.Talks.GetByIDAndUserID(gr.GetTalkId(), gr.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -90,9 +85,7 @@ func (ts *TalksService) Select(ctx context.Context, sr *talks.SelectRequest) (*t
 
 // Create ...
 func (ts *TalksService) Create(ctx context.Context, cr *talks.CreateRequest) (*talks.CreateResponse, error) {
-	ot, err := ts.Talks.Get(&entities.TalksQuery{
-		ID: cr.Talk.Id,
-	})
+	talk, err := ts.Talks.GetByID(cr.GetTalk().GetId())
 	if err != nil {
 		t := (&entities.Talk{}).FromProto(cr.Talk)
 
@@ -106,15 +99,13 @@ func (ts *TalksService) Create(ctx context.Context, cr *talks.CreateRequest) (*t
 	}
 
 	return &talks.CreateResponse{
-		Talk: ot.ToProto(),
+		Talk: talk.ToProto(),
 	}, nil
 }
 
 // Update ...
 func (ts *TalksService) Update(ctx context.Context, ur *talks.UpdateRequest) (*talks.UpdateResponse, error) {
-	ot, err := ts.Talks.Get(&entities.TalksQuery{
-		ID: ur.Data.Id,
-	})
+	talk, err := ts.Talks.GetByID(ur.GetData().GetId())
 	if err != nil {
 		t := (&entities.Talk{}).FromProto(ur.Data)
 
@@ -128,24 +119,22 @@ func (ts *TalksService) Update(ctx context.Context, ur *talks.UpdateRequest) (*t
 	}
 
 	return &talks.UpdateResponse{
-		Data: ot.ToProto(),
+		Data: talk.ToProto(),
 	}, nil
 }
 
 // Delete ...
 func (ts *TalksService) Delete(ctx context.Context, dr *talks.DeleteRequest) (*talks.DeleteResponse, error) {
-	t, err := ts.Talks.Get(&entities.TalksQuery{
-		ID: dr.Data.Id,
-	})
+	talk, err := ts.Talks.GetByID(dr.GetData().GetId())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ts.Talks.Update(t); err != nil {
+	if err := ts.Talks.Update(talk); err != nil {
 		return nil, err
 	}
 
 	return &talks.DeleteResponse{
-		Data: t.ToProto(),
+		Data: talk.ToProto(),
 	}, nil
 }
